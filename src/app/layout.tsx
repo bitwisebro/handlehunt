@@ -1,12 +1,12 @@
+import "bootstrap/dist/css/bootstrap.css";
+// import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import "./styles.css";
+import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "HandleHunt",
-  description: "Check availability of desired usernames on different apps",
+  title: "HandleHunt - Check usernames on Social Media",
+  description: "Check availability of desired usernames on Social Media",
 };
 
 export default function RootLayout({
@@ -16,7 +16,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>
+        <nav className="top-nav navbar bg-primary" data-bs-theme="dark">
+          <div className="nav-text-large">HandleHunt</div>
+          <ul className="nav-list">
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <Link href="/about">About</Link>
+            </li>
+            <li>
+              <Link href="/faqs">FAQs</Link>
+            </li>
+          </ul>
+        </nav>
+        <div className="container">{children}</div>
+      </body>
     </html>
   );
 }
