@@ -1,14 +1,20 @@
-import styles from "./page.module.css";
-
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-      </div>
-    </main>
+    <div>
+      <p className="text-center font-monospace fs-1">
+        Enter You Favourite Internet Name to check its availability
+      </p>
+      <form className="d-flex">
+        <input
+          className="form-control me-2"
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+        />
+        <button className="btn btn-primary" type="submit">
+          Search
+        </button>
+      </form>
+    </div>
   );
 }
