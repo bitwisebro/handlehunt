@@ -1,5 +1,5 @@
-import { checkGithubAvailibility } from "./handlers/GithubHandler.js";
-import { checkRedditAvailability } from "./handlers/RedditHandler.js";
+import { checkGithubAvailibility } from "./GithubHandler";
+import { checkRedditAvailability } from "./RedditHandler";
 
 async function checker(name: string, site: string) {
     if (typeof name != "string" || name == null || name == undefined || name.trim().length == 0)

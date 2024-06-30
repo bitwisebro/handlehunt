@@ -10,7 +10,7 @@ const requestOptions: RequestInit = {
     redirect: "follow",
 };
 
-export async function checkGithubAvailibility(username: string) {
+export const checkGithubAvailibility = async (username: string): Promise<boolean> => {
     console.log("Fetching username on Github");
     try {
         const response = await fetch(`https://api.github.com/users/${username}`, requestOptions);
@@ -18,4 +18,5 @@ export async function checkGithubAvailibility(username: string) {
     } catch (error) {
         console.error('Error fetching GitHub:', error);
     }
+    return false;
 }
