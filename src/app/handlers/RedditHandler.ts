@@ -11,7 +11,7 @@ const redditRequestOptions: RequestInit = {
     redirect: "follow",
 };
 
-export async function checkRedditAvailability(username: string) {
+export const checkRedditAvailability = async (username: string): Promise<boolean> => {
     console.log("Fetching username on Reddit");
     try {
         let url = `https://oauth.reddit.com/api/username_available?user=${username}`;
@@ -20,4 +20,5 @@ export async function checkRedditAvailability(username: string) {
     } catch (error) {
         console.error('Error fetching Reddit:', error);
     }
+    return false
 }
