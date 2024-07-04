@@ -1,7 +1,7 @@
 import { checkGithubAvailibility } from "./GithubHandler";
 import { checkRedditAvailability } from "./RedditHandler";
 
-async function checker(name: string, site: string) {
+export const checker = async (name: string, site: string) => {
     if (typeof name != "string" || name == null || name == undefined || name.trim().length == 0)
         return Promise.reject(`Username is Null/Empty or Not String`);
 
@@ -24,13 +24,13 @@ function getSiteHandler(site: string) {
     return siteHandlers[site];
 }
 
-// Example usage
-checker("shaileshBhandakkar", "github")
-    .then((res) => {
-        console.log("Username availibilty:", res);
-        process.exit(0); // Exit the process successfully
-    })
-    .catch((error) => {
-        console.error(error);
-        process.exit(1); // Exit the process with an error
-    });
+// // Example usage
+// checker("shaileshBhandakkar", "github")
+//     .then((res) => {
+//         console.log("Username availibilty:", res);
+//         process.exit(0); // Exit the process successfully
+//     })
+//     .catch((error) => {
+//         console.error(error);
+//         process.exit(1); // Exit the process with an error
+//     });

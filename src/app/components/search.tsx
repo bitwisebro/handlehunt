@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { checker } from "../handlers/Checker";
 
 function Search(props: any) {
   const [username, setUsername] = useState("");
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
     // Load the saved username from localStorage if available
@@ -15,14 +18,17 @@ function Search(props: any) {
 
   async function handleSubmit(event: any) {
     event.preventDefault();
-    // Save the username to localStorage
     localStorage.setItem("username", username);
-    // Implement your search functionality here
     console.log("Searching for:", username);
   }
 
-  async function searchSites(e: any) {
-    // Implement any additional search functionality if needed
+  async function handleSearch(e: any) {
+    e.preventDefault();
+    localStorage.setItem("username", username);
+    const isAvailable = await checker(username, "reddit");
+    console.log(`${username} isAvailable: ${isAvailable}`);
+    setIsAvailable(isAvailable);
+    setShowResult(true);
   }
 
   async function handleChange(event: any) {
@@ -45,12 +51,17 @@ function Search(props: any) {
         <button
           id="searchBtn"
           className="btn btn-primary"
-          onClick={searchSites}
+          onClick={handleSearch}
           type="submit"
         >
           Search
         </button>
       </form>
+      {showResult && isAvailable !== null && (
+        <p id="githubcheck">
+          {isAvailable ? "Username is available" : "Username is not available"}
+        </p>
+      )}
     </div>
   );
 }
