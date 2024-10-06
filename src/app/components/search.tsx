@@ -25,7 +25,7 @@ function Search(props: any) {
   async function handleSearch(e: any) {
     e.preventDefault();
     localStorage.setItem("username", username);
-    const isAvailable = await checker(username, "reddit");
+    const isAvailable = await checker(username, "github");
     console.log(`${username} isAvailable: ${isAvailable}`);
     setIsAvailable(isAvailable);
     setShowResult(true);
