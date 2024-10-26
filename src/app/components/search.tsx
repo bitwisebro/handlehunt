@@ -5,11 +5,10 @@ import { checker } from "../handlers/Checker";
 
 function Search(props: any) {
   const [username, setUsername] = useState("");
-  const [isAvailable, setIsAvailable] = useState(false);
+  const [results, setResults] = useState({github:null, reddit:null});
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    // Load the saved username from localStorage if available
     const savedUsername = localStorage.getItem("username");
     if (savedUsername) {
       setUsername(savedUsername);
@@ -25,9 +24,10 @@ function Search(props: any) {
   async function handleSearch(e: any) {
     e.preventDefault();
     localStorage.setItem("username", username);
-    const isAvailable = await checker(username, "github");
-    console.log(`${username} isAvailable: ${isAvailable}`);
-    setIsAvailable(isAvailable);
+    const isGithubAvailable = await checker(username, "github");
+    const isRedditAvailable = await checker(username, "reddit");
+    console.log(`${username} isAvailable: ${results}`);
+    setResults({github:isGithubAvailable, reddit:isRedditAvailable});
     setShowResult(true);
   }
 
@@ -57,10 +57,16 @@ function Search(props: any) {
           Search
         </button>
       </form>
-      {showResult && isAvailable !== null && (
-        <p id="githubcheck">
-          {isAvailable ? "Username is available" : "Username is not available"}
-        </p>
+      {showResult && results !== null && (
+        <div id="results"> 
+         <p id="githubcheck">
+            GitHub: {results.github ? "Username is available" : "Username is not available"}
+          </p>
+        <p id="redditcheck">
+            Reddit: {results.reddit ? "Username is available" : "Username is not available"}
+          </p>
+        </div>
+        
       )}
     </div>
   );
