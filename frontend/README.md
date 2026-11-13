@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# HandleHunt — Frontend
+
+The web interface for [HandleHunt](../README.md), a fast and clean username availability checker across multiple platforms.
+
+Built with **React 18**, **TypeScript**, **Vite**, and **Tailwind CSS**.
+
+---
+
+## Quick Links
+
+- [Root Repository README](../README.md)
+- [Backend Documentation](../backend/README.md)
+- **Live Demo:** [https://bitwisebro.github.io/handlehunt](https://bitwisebro.github.io/handlehunt)
+
+---
+
+## Features
+
+- Real-time username availability queries across platforms (GitHub, Reddit).
+- Strict boolean error sanitization (clearly distinguishes "Available", "Taken", and "Check failed").
+- Direct link to available/taken profile handles.
+- Fully responsive dark-themed UI built with Tailwind CSS.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- [Node.js](https://nodejs.org/) (v18 or v20+ recommended)
+- `npm` (comes with Node.js)
+
+### Installation
+
+1. Navigate to the `frontend` folder:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+---
+
+## Environment Variables
+
+The frontend communicates with the HandleHunt Cloudflare Worker backend.
+
+| Variable | Description | Default (Production) | Local Dev Value |
+| :--- | :--- | :--- | :--- |
+| `VITE_API_URL` | Base URL of the backend API worker | `https://handlehunt-manager.bitwisebro.workers.dev` | `http://localhost:8787` |
+
+### Setting Up Local Environment
+
+Copy `.env.example` to `.env.local`:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Inside `.env.local`:
+```env
+VITE_API_URL=http://localhost:8787
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> **Note:** `.env.local` is ignored by git. If `VITE_API_URL` is omitted, the frontend automatically defaults to the production worker.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+---
 
-## Learn More
+## Available Commands
 
-To learn more about Next.js, take a look at the following resources:
+Run these commands inside the `frontend/` directory:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Starts the Vite local development server on [http://localhost:5173](http://localhost:5173) |
+| `npm run build` | Compiles TypeScript and builds the production bundle into `dist/` |
+| `npm run preview` | Previews the production build locally |
+| `npm test` | Runs the test suite in watch mode with Vitest |
+| `npx vitest run` | Runs all Vitest tests once (CI mode) |
+| `npm run test:coverage` | Generates a test coverage report |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Frontend deployment is **automated via GitHub Actions**:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **Workflow:** `.github/workflows/deploy.yml`
+- **Trigger:** Any push to the `main` branch touching `frontend/**` or `.github/workflows/deploy.yml`.
+- **Target:** Deployed to **GitHub Pages** at `https://bitwisebro.github.io/handlehunt`.
+
+To trigger a manual deployment:
+1. Go to your GitHub repository $\rightarrow$ **Actions** tab.
+2. Select **Deploy Frontend to GitHub Pages**.
+3. Click **Run workflow** on the `main` branch.
