@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
             FAQs
           </Link>
           <a
-            href="https://github.com/yourusername/handlehunt"
+            href="https://github.com/bitwisebro/handlehunt"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-slate-900 transition-colors"

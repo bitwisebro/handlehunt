@@ -17,7 +17,7 @@ HandleHunt is a Next.js project designed to simplify social media handle discove
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/handlehunt.git
+   git clone https://github.com/bitwisebro/handlehunt.git
    ```
 2. Navigate to the `handlehunt` directory:
    ```bash

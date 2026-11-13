@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
 
           {/* GitHub Link */}
           <a
-            href="https://github.com/yourusername/handlehunt"
+            href="https://github.com/bitwisebro/handlehunt"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors ml-1"
