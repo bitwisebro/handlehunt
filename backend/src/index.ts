@@ -172,6 +172,146 @@ async function checkGithubFallback(username: string): Promise<PlatformResult> {
 		}
 	}
 
+	async function checkInstagram(username: string): Promise<PlatformResult> {
+		// Instagram username rules: 1-30 chars, letters, numbers, periods, and underscores.
+		// Cannot start/end with period, no consecutive periods.
+		const validFormat =
+			/^[a-zA-Z0-9._]{1,30}$/.test(username) &&
+			!username.includes("..") &&
+			!username.endsWith(".") &&
+			!username.startsWith(".");
+
+		if (!validFormat) {
+			return {
+				platform: "Instagram",
+				available: false,
+				error: "Invalid Instagram username format",
+			};
+		}
+
+		try {
+			// Instagram is an SPA that returns HTTP 200 for ALL routes when using a standard browser User-Agent.
+			// Using a social crawler User-Agent (Twitterbot/1.0) causes Instagram to server-side render
+			// OpenGraph metadata for real profiles, while non-existent handles return a bare page without profile tags.
+			const res = await fetch(`https://www.instagram.com/${encodeURIComponent(username)}/`, {
+				method: "GET",
+				headers: {
+					"User-Agent": "Twitterbot/1.0",
+					Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+					"Accept-Language": "en-US,en;q=0.9",
+				},
+				redirect: "manual",
+			});
+
+			if (res.status === 404) {
+				return { platform: "Instagram", available: true };
+			}
+
+			if (res.status === 301 || res.status === 302 || res.status === 429 || res.status === 0) {
+				return {
+					platform: "Instagram",
+					available: false,
+					error: "Instagram rate-limited or blocked request",
+				};
+			}
+
+			if (res.status === 200) {
+				const html = await res.text();
+
+				const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["'](.*?)["']/i);
+				const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+				const ogUrlMatch = html.match(/<meta\s+property=["']og:url["']\s+content=["'](.*?)["']/i);
+
+				const ogTitle = ogTitleMatch ? ogTitleMatch[1] : "";
+				const title = titleMatch ? titleMatch[1] : "";
+				const ogUrl = ogUrlMatch ? ogUrlMatch[1] : "";
+
+				// Normalize HTML entities (e.g. &#064; -> @)
+				const decoded = (ogTitle + " " + title).replace(/&#064;/g, "@");
+				const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+				const userMentionRegex = new RegExp(`@${escapedUsername}\\b`, "i");
+
+				// If the OpenGraph title or page title references @username, the handle is taken
+				if (userMentionRegex.test(decoded)) {
+					return { platform: "Instagram", available: false };
+				}
+
+				// If og:url matches the user's profile URL, the handle is taken
+				if (ogUrl.toLowerCase().includes(`/${username.toLowerCase()}/`)) {
+					return { platform: "Instagram", available: false };
+				}
+
+				// Otherwise, the handle does not belong to an active profile
+				return { platform: "Instagram", available: true };
+			}
+
+			return {
+				platform: "Instagram",
+				available: false,
+				error: `Instagram check returned status ${res.status}`,
+			};
+		} catch (err: any) {
+			return {
+				platform: "Instagram",
+				available: false,
+				error: err.message || "Failed to reach Instagram",
+			};
+		}
+	}
+
+	async function checkYouTube(username: string): Promise<PlatformResult> {
+		// YouTube handle format: 3-30 chars, letters, numbers, underscores, hyphens, and periods
+		const validFormat = /^[a-zA-Z0-9._-]{3,30}$/.test(username);
+		if (!validFormat) {
+			return {
+				platform: "YouTube",
+				available: false,
+				error: "Invalid handle format (must be 3-30 characters: letters, numbers, periods, hyphens, or underscores)",
+			};
+		}
+
+		try {
+			const res = await fetch(`https://www.youtube.com/@${encodeURIComponent(username)}`, {
+				method: "HEAD",
+				headers: {
+					"User-Agent":
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+				},
+				redirect: "manual",
+			});
+
+			// 404: Handle does not exist -> available
+			if (res.status === 404) {
+				return { platform: "YouTube", available: true };
+			}
+
+			// 200 or redirect to channel URL -> taken
+			if (res.status === 200 || (res.status >= 300 && res.status < 400)) {
+				return { platform: "YouTube", available: false };
+			}
+
+			if (res.status === 429) {
+				return {
+					platform: "YouTube",
+					available: false,
+					error: "YouTube rate-limited request",
+				};
+			}
+
+			return {
+				platform: "YouTube",
+				available: false,
+				error: `YouTube check returned status ${res.status}`,
+			};
+		} catch (err: any) {
+			return {
+				platform: "YouTube",
+				available: false,
+				error: err.message || "Failed to reach YouTube",
+			};
+		}
+	}
+
 	// ─── Token Refresh ───────────────────────────────────────────────────
 
 	async function refreshRedditToken(env: Env): Promise<Response> {
@@ -218,12 +358,14 @@ async function checkGithubFallback(username: string): Promise<PlatformResult> {
 				return jsonResponse({ error: "Missing 'username' query parameter" }, 400, env);
 			}
 
-			const [github, reddit] = await Promise.all([
+			const [github, reddit, instagram, youtube] = await Promise.all([
 				checkGithub(username, env),
 				checkReddit(username, env),
+				checkInstagram(username),
+				checkYouTube(username),
 			]);
 
-			return jsonResponse({ username, results: [github, reddit] }, 200, env);
+			return jsonResponse({ username, results: [github, reddit, instagram, youtube] }, 200, env);
 		}
 
 		// GET /token

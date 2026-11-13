@@ -66,11 +66,13 @@ describe('HandleHunt API Worker', () => {
 		const body = (await response.json()) as any;
 		expect(body.username).toBe('testuser');
 		expect(Array.isArray(body.results)).toBe(true);
-		expect(body.results.length).toBe(2);
+		expect(body.results.length).toBe(4);
 
 		const platforms = body.results.map((r: any) => r.platform);
 		expect(platforms).toContain('GitHub');
 		expect(platforms).toContain('Reddit');
+		expect(platforms).toContain('Instagram');
+		expect(platforms).toContain('YouTube');
 	});
 
 	it('returns 404 for unknown endpoints', async () => {
