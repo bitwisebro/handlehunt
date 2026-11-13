@@ -259,6 +259,59 @@ async function checkGithubFallback(username: string): Promise<PlatformResult> {
 		}
 	}
 
+	async function checkYouTube(username: string): Promise<PlatformResult> {
+		// YouTube handle format: 3-30 chars, letters, numbers, underscores, hyphens, and periods
+		const validFormat = /^[a-zA-Z0-9._-]{3,30}$/.test(username);
+		if (!validFormat) {
+			return {
+				platform: "YouTube",
+				available: false,
+				error: "Invalid handle format (must be 3-30 characters: letters, numbers, periods, hyphens, or underscores)",
+			};
+		}
+
+		try {
+			const res = await fetch(`https://www.youtube.com/@${encodeURIComponent(username)}`, {
+				method: "HEAD",
+				headers: {
+					"User-Agent":
+						"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+				},
+				redirect: "manual",
+			});
+
+			// 404: Handle does not exist -> available
+			if (res.status === 404) {
+				return { platform: "YouTube", available: true };
+			}
+
+			// 200 or redirect to channel URL -> taken
+			if (res.status === 200 || (res.status >= 300 && res.status < 400)) {
+				return { platform: "YouTube", available: false };
+			}
+
+			if (res.status === 429) {
+				return {
+					platform: "YouTube",
+					available: false,
+					error: "YouTube rate-limited request",
+				};
+			}
+
+			return {
+				platform: "YouTube",
+				available: false,
+				error: `YouTube check returned status ${res.status}`,
+			};
+		} catch (err: any) {
+			return {
+				platform: "YouTube",
+				available: false,
+				error: err.message || "Failed to reach YouTube",
+			};
+		}
+	}
+
 	// ─── Token Refresh ───────────────────────────────────────────────────
 
 	async function refreshRedditToken(env: Env): Promise<Response> {
@@ -305,13 +358,14 @@ async function checkGithubFallback(username: string): Promise<PlatformResult> {
 				return jsonResponse({ error: "Missing 'username' query parameter" }, 400, env);
 			}
 
-			const [github, reddit, instagram] = await Promise.all([
+			const [github, reddit, instagram, youtube] = await Promise.all([
 				checkGithub(username, env),
 				checkReddit(username, env),
 				checkInstagram(username),
+				checkYouTube(username),
 			]);
 
-			return jsonResponse({ username, results: [github, reddit, instagram] }, 200, env);
+			return jsonResponse({ username, results: [github, reddit, instagram, youtube] }, 200, env);
 		}
 
 		// GET /token
