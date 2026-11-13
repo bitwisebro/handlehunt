@@ -9,7 +9,7 @@
  *   Refreshes the Reddit OAuth token every 55 minutes via cron trigger.
  */
 
-interface Env {
+export interface Env {
 	handlehunt_secrets: KVNamespace;
 	REDDIT_CLIENT_ID: string;
 	REDDIT_CLIENT_SECRET: string;
