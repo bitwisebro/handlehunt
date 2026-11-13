@@ -80,7 +80,6 @@ async function checkRedditDirect(username: string, token?: string): Promise<Plat
       {
         headers: {
           Authorization: `Bearer ${authToken}`,
-          "User-Agent": "handleHunt/2.0 by u/Lost_Access_401",
         },
       }
     );
