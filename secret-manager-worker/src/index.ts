@@ -62,12 +62,24 @@ async function checkGithub(username: string): Promise<PlatformResult> {
 
 async function checkReddit(username: string, env: Env): Promise<PlatformResult> {
 	try {
-		const token = await env.handlehunt_secrets.get("redditToken");
+		let token = await env.handlehunt_secrets.get("redditToken");
 		if (!token) {
-			return { platform: "Reddit", available: false, error: "Token not available" };
+			const refreshRes = await refreshRedditToken(env);
+			if (refreshRes.ok) {
+				const data: any = await refreshRes.json();
+				if (typeof data?.access_token === "string") {
+					token = data.access_token;
+					await env.handlehunt_secrets.put("redditToken", data.access_token);
+				}
+			}
 		}
-		const res = await fetch(
-			`https://oauth.reddit.com/api/username_available?user=${username}`,
+
+		if (!token) {
+			return { platform: "Reddit", available: false, error: "Reddit token not available" };
+		}
+
+		let res = await fetch(
+			`https://oauth.reddit.com/api/username_available?user=${encodeURIComponent(username)}`,
 			{
 				headers: {
 					"User-Agent": "handleHunt/2.0 by u/Lost_Access_401",
@@ -75,8 +87,39 @@ async function checkReddit(username: string, env: Env): Promise<PlatformResult> 
 				},
 			}
 		);
-		const available: boolean = await res.json();
-		return { platform: "Reddit", available };
+
+		// If unauthorized (token expired), refresh token and retry
+		if (res.status === 401) {
+			const refreshRes = await refreshRedditToken(env);
+			if (refreshRes.ok) {
+				const data: any = await refreshRes.json();
+				if (typeof data?.access_token === "string") {
+					token = data.access_token;
+					await env.handlehunt_secrets.put("redditToken", data.access_token);
+				}
+				res = await fetch(
+					`https://oauth.reddit.com/api/username_available?user=${encodeURIComponent(username)}`,
+					{
+						headers: {
+							"User-Agent": "handleHunt/2.0 by u/Lost_Access_401",
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+			}
+		}
+
+		if (!res.ok) {
+			const errorData: any = await res.json().catch(() => null);
+			const errorMsg =
+				errorData?.error?.explanation ||
+				errorData?.error?.reason ||
+				`Reddit API responded with ${res.status}`;
+			return { platform: "Reddit", available: false, error: errorMsg };
+		}
+
+		const data: any = await res.json();
+		return { platform: "Reddit", available: typeof data === "boolean" ? data : Boolean(data) };
 	} catch (err: any) {
 		return { platform: "Reddit", available: false, error: err.message };
 	}
@@ -128,6 +171,15 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 		]);
 
 		return jsonResponse({ username, results: [github, reddit] }, 200, env);
+	}
+
+	// GET /token
+	if (url.pathname === "/token" && request.method === "GET") {
+		const token = await env.handlehunt_secrets.get("redditToken");
+		if (!token) {
+			return jsonResponse({ error: "Token not found" }, 404, env);
+		}
+		return jsonResponse({ token }, 200, env);
 	}
 
 	// GET /health

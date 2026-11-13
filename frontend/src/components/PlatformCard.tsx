@@ -61,18 +61,19 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
     }
 
     if (checkState?.error) {
+      const isRate = checkState.error.toLowerCase().includes("rate");
       return (
         <span
           className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"
           title={checkState.error}
         >
           <AlertCircle className="h-3 w-3" />
-          Rate limited
+          {isRate ? "Rate limited" : "Check failed"}
         </span>
       );
     }
 
-    if (checkState?.available) {
+    if (checkState?.available === true) {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
           <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3]" />
@@ -81,18 +82,22 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
       );
     }
 
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 border border-rose-200">
-        <X className="h-3.5 w-3.5 text-rose-600 stroke-[3]" />
-        Taken
-      </span>
-    );
+    if (checkState?.available === false) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 border border-rose-200">
+          <X className="h-3.5 w-3.5 text-rose-600 stroke-[3]" />
+          Taken
+        </span>
+      );
+    }
+
+    return null;
   };
 
   return (
     <div
       className={`group relative flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
-        checkState?.available
+        checkState?.available === true
           ? "border-emerald-200 hover:border-emerald-300 ring-1 ring-emerald-100"
           : checkState?.available === false
           ? "border-slate-200 hover:border-slate-300 opacity-95"
@@ -154,7 +159,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
 
       {/* Action CTA */}
       <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-        {checkState?.available ? (
+        {checkState?.available === true ? (
           <a
             href={claimUrl}
             target="_blank"
@@ -164,7 +169,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
             Claim Handle
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
-        ) : hasSearched && checkState?.available === false ? (
+        ) : hasSearched && checkState?.available === false && !checkState?.error ? (
           <a
             href={profileUrl}
             target="_blank"
