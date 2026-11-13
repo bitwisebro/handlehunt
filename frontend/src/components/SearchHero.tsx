@@ -20,7 +20,6 @@ export const SearchHero: React.FC = () => {
     const saved = localStorage.getItem("username");
     if (saved) {
       setUsername(saved);
-      triggerCheck(saved);
     }
   }, []);
 
@@ -273,8 +272,8 @@ export const SearchHero: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all ${activeCategory === cat.id
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                   }`}
               >
                 {cat.label}
@@ -288,8 +287,8 @@ export const SearchHero: React.FC = () => {
             <button
               onClick={() => setOnlyAvailable(!onlyAvailable)}
               className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium border transition-colors ${onlyAvailable
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-700 font-semibold"
-                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                ? "border-emerald-300 bg-emerald-50 text-emerald-700 font-semibold"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 }`}
             >
               <Filter className="h-3 w-3" />
