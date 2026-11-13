@@ -16,6 +16,7 @@ export interface Env {
 	REDDIT_USERNAME: string;
 	REDDIT_PASSWORD: string;
 	ALLOWED_ORIGIN: string;
+	GITHUB_TOKEN?: string;
 }
 
 interface PlatformResult {
@@ -50,17 +51,59 @@ function jsonResponse(body: unknown, status: number, env: Env): Response {
 
 // ─── Platform Checkers ───────────────────────────────────────────────
 
-	async function checkGithub(username: string): Promise<PlatformResult> {
+async function checkGithub(username: string, env?: Env): Promise<PlatformResult> {
+		// If a GitHub token is configured, use the authenticated REST API (5,000 req/hr)
+		if (env?.GITHUB_TOKEN) {
+			try {
+				const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, {
+					headers: {
+						"User-Agent": "handleHunt/2.0",
+						Accept: "application/vnd.github.v3+json",
+						Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+					},
+				});
+
+					if (res.status === 404) {
+						return { platform: "GitHub", available: true };
+					}
+					if (res.status === 200) {
+						return { platform: "GitHub", available: false };
+					}
+					// If unexpected error on authenticated call, fall through to web check
+				} catch {
+					// Fall through to web check on network error
+				}
+			}
+
+		// Fast default: Single HEAD request to github.com/<username> (~100ms, 0 byte body, no rate limit)
+		return checkGithubFallback(username);
+	}
+
+/**
+ * Fallback: HEAD request to github.com/<username> profile page.
+ * Not subject to the REST API rate limit.
+ * Returns 404 if the user doesn't exist, 200 if taken.
+ */
+async function checkGithubFallback(username: string): Promise<PlatformResult> {
 		try {
-			const res = await fetch(`https://api.github.com/users/${username}`, {
+			const res = await fetch(`https://github.com/${encodeURIComponent(username)}`, {
+				method: "HEAD",
 				headers: {
 					"User-Agent": "handleHunt/2.0",
-					Accept: "application/vnd.github.v3+json",
 				},
+				redirect: "manual",
 			});
-			return { platform: "GitHub", available: res.status === 404 };
+
+			if (res.status === 404) {
+				return { platform: "GitHub", available: true };
+			}
+			if (res.status === 200 || (res.status >= 300 && res.status < 400)) {
+				return { platform: "GitHub", available: false };
+			}
+
+			return { platform: "GitHub", available: false, error: `GitHub profile check returned ${res.status}` };
 		} catch (err: any) {
-			return { platform: "GitHub", available: false, error: err.message };
+			return { platform: "GitHub", available: false, error: err.message || "Failed to reach GitHub" };
 		}
 	}
 
@@ -176,7 +219,7 @@ function jsonResponse(body: unknown, status: number, env: Env): Response {
 			}
 
 			const [github, reddit] = await Promise.all([
-				checkGithub(username),
+				checkGithub(username, env),
 				checkReddit(username, env),
 			]);
 
