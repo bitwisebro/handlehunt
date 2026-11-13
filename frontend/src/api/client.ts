@@ -125,7 +125,25 @@ export async function checkUsername(username: string): Promise<CheckResponse> {
 
       // If new worker format with results array
       if (data && Array.isArray(data.results)) {
-        return data;
+        return {
+          username: data.username || clean,
+          results: data.results.map((r: any) => {
+            const isBool = typeof r.available === "boolean";
+            const hasError = !isBool || Boolean(r.error);
+            const errorMsg =
+              r.error ||
+              (typeof r.available === "object"
+                ? r.available?.error?.explanation || r.available?.error?.reason || "Check failed"
+                : !isBool
+                ? "Check failed"
+                : undefined);
+            return {
+              platform: r.platform,
+              available: isBool ? r.available : false,
+              error: hasError ? errorMsg : undefined,
+            };
+          }),
+        };
       }
 
       // If legacy worker returns { token: "..." }
