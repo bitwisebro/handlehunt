@@ -37,10 +37,11 @@ handlehunt/
 
 ## Features
 
-- **Multi-Platform Availability Checking**: Checks availability across **GitHub** and **Reddit** simultaneously.
+- **Multi-Platform Availability Checking**: Checks availability across **GitHub**, **Reddit**, and **Instagram** simultaneously.
 - **Ultra-Fast & Rate-Limit Resilient**:
   - **GitHub**: Performs zero-body `HEAD` requests directly against public profiles, avoiding the restrictive 60 req/hr unauthenticated REST API limit.
   - **Reddit**: Manages OAuth2 tokens using Cloudflare KV storage with automatic 55-minute cron refreshes and auto-recovery on 401 Unauthorized responses.
+  - **Instagram**: Checks public profile availability with customized browser request headers and redirect handling.
 - **Clean Error Separation**: Explicitly differentiates between "Available", "Taken", and "Check failed" with detailed status reporting.
 - **Serverless & Free-Tier Hosted**:
   - Frontend hosted on **GitHub Pages**.

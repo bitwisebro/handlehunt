@@ -18,7 +18,7 @@ It provides high-performance username availability checks across platforms and h
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/check?username=<name>` | Checks username availability on GitHub and Reddit in parallel. |
+| `GET` | `/check?username=<name>` | Checks username availability on GitHub, Reddit, and Instagram in parallel. |
 | `GET` | `/token` | Returns the cached Reddit bearer token from KV. |
 | `GET` | `/health` | Health-check endpoint (`{"status": "ok"}`). |
 | `OPTIONS` | `*` | Handles CORS preflight headers with `Cache-Control: no-transform`. |
@@ -35,6 +35,10 @@ It provides high-performance username availability checks across platforms and h
    - Queries `https://oauth.reddit.com/api/username_available?user=<username>`.
    - Uses the cached bearer token from Cloudflare KV (`handlehunt_secrets`).
    - Automatically refreshes the OAuth token and retries if a `401 Unauthorized` occurs.
+3. **Instagram Check**:
+   - Validates username formatting (1-30 chars, letters, numbers, periods, underscores).
+   - Makes a web GET request to `https://www.instagram.com/<username>/` with browser headers and manual redirect inspection.
+   - Returns `available: true` on `404 Not Found`, `available: false` on `200 OK`, and catches anti-bot/login redirects (301/302/429) cleanly.
 
 ---
 
